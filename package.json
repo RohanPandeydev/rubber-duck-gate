@@ -1,16 +1,16 @@
 {
-  "name": "breathe-before-you-push",
+  "name": "rubber-duck-gate",
   "version": "0.1.0",
-  "description": "A git hook that locks risky pushes until you take three slow breaths on camera.",
+  "description": "A git hook that blocks risky pushes until you explain your change out loud to a rubber duck. Camera only, no microphone.",
   "license": "MIT",
   "private": true,
   "main": "app/main.js",
   "bin": {
-    "breathe": "bin/breathe.js"
+    "duck": "bin/duck.js"
   },
   "scripts": {
     "build": "esbuild app/renderer.js --bundle --platform=browser --format=iife --outfile=app/dist/renderer.bundle.js --log-level=warning && esbuild app/preload.js --bundle --platform=node --external:electron --outfile=app/dist/preload.js --log-level=warning",
-    "start": "npm run build && node bin/breathe.js gate",
+    "start": "npm run build && node bin/duck.js gate",
     "test": "node --test",
     "prepare": "npm run build",
     "test:ui": "npm run build && node scripts/ui-check.js"
@@ -22,5 +22,5 @@
     "electron": "43.2.0",
     "esbuild": "^0.28.2"
   },
-  "repository": "https://github.com/RohanPandeydev/breathe-before-you-push"
+  "repository": "https://github.com/RohanPandeydev/rubber-duck-gate"
 }

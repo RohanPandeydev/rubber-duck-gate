@@ -20,17 +20,17 @@ function readApiKey() {
 }
 
 // Lets scripts/ui-check.js drive this window. Off unless asked for.
-if (process.env.BREATHE_DEBUG_PORT) app.commandLine.appendSwitch('remote-debugging-port', process.env.BREATHE_DEBUG_PORT);
+if (process.env.DUCK_DEBUG_PORT) app.commandLine.appendSwitch('remote-debugging-port', process.env.DUCK_DEBUG_PORT);
 
 let exitCode = EXIT_CANCEL;
 
 function createWindow() {
   const win = new BrowserWindow({
     width: 560,
-    height: 720,
+    height: 760,
     resizable: false,
-    title: 'Breathe before you push',
-    backgroundColor: '#0d1117',
+    title: 'Rubber Duck Gate',
+    backgroundColor: '#14181f',
     webPreferences: {
       preload: path.join(__dirname, 'dist/preload.js'),
       contextIsolation: true,
@@ -54,15 +54,15 @@ ipcMain.handle('gate:camera-access', async () => {
 
 ipcMain.handle('gate:config', () => ({
   apiKey: readApiKey(),
-  reason: process.env.BREATHE_REASON || 'take a moment',
-  simulate: process.env.BREATHE_SIMULATE || '',
-  debug: process.env.BREATHE_DEBUG === '1',
+  reason: process.env.DUCK_REASON || 'explain yourself',
+  simulate: process.env.DUCK_SIMULATE || '',
+  debug: process.env.DUCK_DEBUG === '1',
 }));
 
 ipcMain.on('gate:finish', (_event, outcome) => {
   exitCode = outcome === 'passed' || outcome === 'skipped' ? EXIT_ALLOW : EXIT_CANCEL;
-  if (process.env.BREATHE_RESULT_FILE && exitCode === EXIT_ALLOW) {
-    fs.writeFileSync(process.env.BREATHE_RESULT_FILE, 'allow');
+  if (process.env.DUCK_RESULT_FILE && exitCode === EXIT_ALLOW) {
+    fs.writeFileSync(process.env.DUCK_RESULT_FILE, 'allow');
   }
   app.quit();
 });
@@ -72,7 +72,7 @@ ipcMain.on('gate:camera-settings', () => {
 });
 
 ipcMain.on('gate:trace', (_event, line) => {
-  if (process.env.BREATHE_DEBUG === '1') console.error(line);
+  if (process.env.DUCK_DEBUG === '1') console.error(line);
 });
 
 app.whenReady().then(() => {

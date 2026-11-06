@@ -4,44 +4,58 @@
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; worker-src 'self' blob:; media-src blob:;">
-  <title>Breathe before you push</title>
+  <title>Rubber Duck Gate</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-screen="consent">
   <header>
-    <p class="eyebrow">Hold on</p>
+    <p class="eyebrow">The duck has stopped your</p>
     <h1 id="reason"></h1>
     <p id="simulated" class="badge" hidden>Simulated signal, camera off</p>
   </header>
 
+  <div id="duck-area">
+    <p id="bubble" class="bubble" role="status"></p>
+    <div class="stage">
+      <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
+        <circle class="track" cx="100" cy="100" r="92"></circle>
+        <circle id="meter" cx="100" cy="100" r="92" pathLength="1" stroke-dasharray="0 1" class="meter empty"></circle>
+      </svg>
+      <svg id="duck" class="duck" viewBox="0 0 200 200" aria-hidden="true">
+        <ellipse class="body" cx="96" cy="136" rx="66" ry="44"></ellipse>
+        <path class="body" d="M36 126 C22 116 22 100 30 94 C38 108 48 112 58 112 Z"></path>
+        <path class="wing" d="M72 126 C92 112 124 118 130 134 C112 156 84 152 72 126 Z"></path>
+        <g class="head">
+          <circle class="body" cx="128" cy="78" r="38"></circle>
+          <path class="bill" d="M158 72 C176 68 190 74 192 82 C184 92 168 94 156 90 Z"></path>
+          <circle class="eye" cx="138" cy="66" r="8"></circle>
+          <circle class="glint" cx="141" cy="63" r="2.5"></circle>
+          <path class="brow" d="M126 52 L150 56"></path>
+        </g>
+      </svg>
+    </div>
+  </div>
+
   <section id="consent" class="screen">
-    <h2>Three slow breaths, then it goes through.</h2>
+    <h2>Explain this change to the duck, out loud.</h2>
     <ul>
       <li>Your camera turns on only after you press the button below, and turns off as soon as you finish.</li>
-      <li>This app saves nothing: no video, no breathing data, no logs.</li>
-      <li>The SmartSpectra SDK contacts Presage to check the API key. SDK telemetry is switched off.</li>
-      <li>This reads your breathing pace only. It is not a health or stress measurement.</li>
+      <li>The duck never hears you. It watches for talking through the camera, and this app never uses the microphone.</li>
+      <li>This app saves nothing: no video, no face data, no logs.</li>
+      <li>The SmartSpectra SDK contacts Presage to check the API key and usage. SDK telemetry is switched off.</li>
+      <li>The duck's remarks about your expression are a joke, not a reading of how you feel.</li>
     </ul>
     <button id="start" class="primary">Turn on camera and start</button>
   </section>
 
   <section id="session" class="screen" hidden>
-    <div class="stage">
-      <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
-        <circle class="arc" id="arc-1" cx="100" cy="100" r="92" pathLength="3" stroke-dasharray="0.96 2.04" stroke-dashoffset="-0.02"></circle>
-        <circle class="arc" id="arc-2" cx="100" cy="100" r="92" pathLength="3" stroke-dasharray="0.96 2.04" stroke-dashoffset="-1.02"></circle>
-        <circle class="arc" id="arc-3" cx="100" cy="100" r="92" pathLength="3" stroke-dasharray="0.96 2.04" stroke-dashoffset="-2.02"></circle>
-      </svg>
-      <div id="orb" class="orb"></div>
-      <p id="count" class="count">0 / 3</p>
-    </div>
-    <p id="status" class="status" role="status">Starting camera</p>
+    <p id="left" class="left"></p>
+    <p id="hint" class="hint"></p>
     <video id="preview" class="preview" autoplay muted playsinline></video>
   </section>
 
   <section id="done" class="screen" hidden>
-    <p class="check" aria-hidden="true">✓</p>
-    <h2>Unlocked. Go ahead.</h2>
+    <h2>Quack. Go ahead.</h2>
   </section>
 
   <section id="problem" class="screen" hidden>
@@ -53,7 +67,7 @@
 
   <footer id="actions">
     <button id="cancel">Cancel</button>
-    <button id="skip">Skip breathing, continue anyway</button>
+    <button id="skip">Skip the duck, continue anyway</button>
   </footer>
 
   <script src="dist/renderer.bundle.js"></script>
