@@ -1,0 +1,26 @@
+{
+  "name": "breathe-before-you-push",
+  "version": "0.1.0",
+  "description": "A git hook that locks risky pushes until you take three slow breaths on camera.",
+  "license": "MIT",
+  "private": true,
+  "main": "app/main.js",
+  "bin": {
+    "breathe": "bin/breathe.js"
+  },
+  "scripts": {
+    "build": "esbuild app/renderer.js --bundle --platform=browser --format=iife --outfile=app/dist/renderer.bundle.js --log-level=warning && esbuild app/preload.js --bundle --platform=node --external:electron --outfile=app/dist/preload.js --log-level=warning",
+    "start": "npm run build && env -u ELECTRON_RUN_AS_NODE electron .",
+    "test": "node --test",
+    "prepare": "npm run build",
+    "test:ui": "npm run build && node scripts/ui-check.js"
+  },
+  "dependencies": {
+    "@smartspectra/node-sdk": "^3.4.0"
+  },
+  "devDependencies": {
+    "electron": "43.2.0",
+    "esbuild": "^0.28.2"
+  },
+  "repository": "https://github.com/RohanPandeydev/breathe-before-you-push"
+}
