@@ -2,12 +2,14 @@
 'use strict';
 
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { riskyReasons, DEFAULT_PROTECTED } = require('../src/risk');
 
 const ROOT = path.resolve(__dirname, '..');
 const HOOK_MARKER = '# installed by breathe-before-you-push';
+const FORWARDED_ENV = ['BREATHE_REASON', 'BREATHE_SIMULATE', 'BREATHE_DEBUG', 'BREATHE_DEBUG_PORT', 'SMARTSPECTRA_API_KEY'];
 
 function git(args, options = {}) {
   return spawnSync('git', args, { encoding: 'utf8', ...options });
@@ -26,8 +28,37 @@ function openGate(reason) {
   }
   const env = { ...process.env, BREATHE_REASON: reason };
   delete env.ELECTRON_RUN_AS_NODE;
+  if (process.platform === 'darwin') return openGateOnMac(env);
   const result = spawnSync(require('electron'), [ROOT], { env, stdio: 'inherit' });
   return result.status ?? 1;
+}
+
+// macOS asks the app that launched a process for camera access. Started from an
+// editor or terminal without that permission, the camera is refused with no prompt.
+// Launching through `open` makes the app ask for itself, but its exit code is lost,
+// so the outcome comes back through a temporary file. No file means cancelled.
+function openGateOnMac(env) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'breathe-'));
+  const resultFile = path.join(dir, 'result');
+  const appBundle = path.resolve(require('electron'), '../../..');
+  const passed = { ...pick(env, FORWARDED_ENV), BREATHE_RESULT_FILE: resultFile };
+  const args = ['-W', '-n', appBundle];
+  for (const [key, value] of Object.entries(passed)) args.push('--env', `${key}=${value}`);
+  if (env.BREATHE_DEBUG_LOG) args.push('--stderr', env.BREATHE_DEBUG_LOG);
+  args.push('--args', ROOT);
+  try {
+    const launched = spawnSync('open', args, { stdio: 'inherit' });
+    if (launched.status !== 0) return 1;
+    return fs.readFileSync(resultFile, 'utf8').trim() === 'allow' ? 0 : 1;
+  } catch {
+    return 1;
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+function pick(source, keys) {
+  return Object.fromEntries(keys.filter((key) => source[key] !== undefined).map((key) => [key, source[key]]));
 }
 
 function install() {

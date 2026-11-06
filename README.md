@@ -58,6 +58,10 @@ node /path/to/breathe-before-you-push/bin/breathe.js run -- npm run deploy
 
 To try the window without a real push: `npm start`.
 
+On a Mac, the first run asks whether **Electron** may use the camera. The app
+launches itself through `open` so that macOS asks about Electron, not about the
+editor or terminal you pushed from.
+
 ## How it works
 
 1. `bin/breathe.js` reads the refs git passes to the `pre-push` hook.
@@ -65,8 +69,9 @@ To try the window without a real push: `npm start`.
 2. If it is, Electron opens `app/`. The renderer uses SmartSpectra's
    `@smartspectra/node-sdk/renderer` and requests the breathing metrics.
 3. Each `metrics` event carries a slice of `breathing.upperTrace`, the live chest
-   waveform. `src/breath-counter.js` smooths it and finds peaks. One peak-to-peak
-   cycle is one breath. A breath under 4 seconds restarts the count.
+   waveform. `src/breath-counter.js` ignores the first 8 seconds while the signal
+   settles, smooths it and finds peaks. One peak-to-peak cycle is one breath. A
+   breath under 4 seconds restarts the count.
 4. After three slow breaths the camera turns off and the app exits with code 0,
    so git continues. Cancelling or closing the window exits with 1, so git stops.
 

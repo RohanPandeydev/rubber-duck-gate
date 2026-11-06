@@ -108,8 +108,10 @@ async function stopCamera() {
   }
 }
 
-function fail(title, detail) {
+function fail(title, detail, cameraBlocked = false) {
   if (finished) return;
+  $('settings').hidden = !cameraBlocked;
+  window.gate.trace(`[breathe] problem: ${title}: ${detail}`);
   stopCamera();
   $('problem-title').textContent = title;
   $('problem-detail').textContent = detail;
@@ -198,6 +200,14 @@ async function begin() {
     fail('No API key found', 'Add SMARTSPECTRA_API_KEY to the .env file. You can cancel or continue anyway.');
     return;
   }
+  if (!(await window.gate.cameraAccess())) {
+    fail(
+      'macOS is blocking the camera',
+      'Turn on Electron under Privacy & Security > Camera, then try again. You can also cancel or continue anyway.',
+      true,
+    );
+    return;
+  }
   try {
     await startSdk();
   } catch (error) {
@@ -211,6 +221,7 @@ async function init() {
   $('simulated').hidden = !config.simulate;
   $('start').addEventListener('click', begin);
   $('retry').addEventListener('click', begin);
+  $('settings').addEventListener('click', () => window.gate.openCameraSettings());
   $('cancel').addEventListener('click', () => end('cancelled'));
   $('skip').addEventListener('click', () => end('skipped'));
 }

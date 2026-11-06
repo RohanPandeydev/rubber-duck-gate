@@ -6,6 +6,9 @@ const DEFAULTS = {
   minBreathSeconds: 4,
   // Longer than this and we lost the signal rather than saw a very long breath.
   maxBreathSeconds: 20,
+  // The waveform swings wildly while the SDK settles: a live run jumped to 12.6
+  // against a later range of about 5, which then hid real breaths from the range.
+  settleSeconds: 8,
   smoothingSeconds: 0.4,
   rangeWindowSeconds: 20,
   // A turn in the waveform must retrace this share of the recent range...
@@ -25,6 +28,7 @@ class BreathCounter {
   reset() {
     this.count = 0;
     this.lastTime = null;
+    this.firstTime = null;
     this.smoothed = null;
     this.history = [];
     this.direction = 0;
@@ -63,6 +67,11 @@ class BreathCounter {
     for (const { time, value } of samples) {
       if (!Number.isFinite(time) || !Number.isFinite(value)) continue;
       if (this.lastTime !== null && time <= this.lastTime) continue;
+      if (this.firstTime === null) this.firstTime = time;
+      if (time - this.firstTime < this.options.settleSeconds) {
+        this.lastTime = time;
+        continue;
+      }
       this.step(time, value);
     }
     return this.events;
@@ -70,8 +79,8 @@ class BreathCounter {
 
   step(time, value) {
     const { smoothingSeconds, rangeWindowSeconds, hysteresisShare, minAmplitude } = this.options;
-    const dt = this.lastTime === null ? 0 : time - this.lastTime;
-    const alpha = dt === 0 ? 1 : 1 - Math.exp(-dt / smoothingSeconds);
+    const dt = time - this.lastTime;
+    const alpha = 1 - Math.exp(-dt / smoothingSeconds);
     this.smoothed = this.smoothed === null ? value : this.smoothed + alpha * (value - this.smoothed);
     this.lastTime = time;
 

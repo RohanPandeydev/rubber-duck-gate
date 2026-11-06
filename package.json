@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "esbuild app/renderer.js --bundle --platform=browser --format=iife --outfile=app/dist/renderer.bundle.js --log-level=warning && esbuild app/preload.js --bundle --platform=node --external:electron --outfile=app/dist/preload.js --log-level=warning",
-    "start": "npm run build && env -u ELECTRON_RUN_AS_NODE electron .",
+    "start": "npm run build && node bin/breathe.js gate",
     "test": "node --test",
     "prepare": "npm run build",
     "test:ui": "npm run build && node scripts/ui-check.js"

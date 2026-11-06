@@ -2,7 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { app, BrowserWindow, ipcMain, session } = require('electron');
+const { app, BrowserWindow, ipcMain, session, shell, systemPreferences } = require('electron');
 const { bindSmartSpectraIpc } = require('@smartspectra/node-sdk/main');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -45,6 +45,13 @@ function createWindow() {
   win.loadFile(path.join(__dirname, 'index.html'));
 }
 
+// Shows the macOS prompt the first time. Resolves false if access is refused.
+ipcMain.handle('gate:camera-access', async () => {
+  if (process.platform !== 'darwin') return true;
+  if (systemPreferences.getMediaAccessStatus('camera') === 'granted') return true;
+  return systemPreferences.askForMediaAccess('camera');
+});
+
 ipcMain.handle('gate:config', () => ({
   apiKey: readApiKey(),
   reason: process.env.BREATHE_REASON || 'take a moment',
@@ -54,7 +61,14 @@ ipcMain.handle('gate:config', () => ({
 
 ipcMain.on('gate:finish', (_event, outcome) => {
   exitCode = outcome === 'passed' || outcome === 'skipped' ? EXIT_ALLOW : EXIT_CANCEL;
+  if (process.env.BREATHE_RESULT_FILE && exitCode === EXIT_ALLOW) {
+    fs.writeFileSync(process.env.BREATHE_RESULT_FILE, 'allow');
+  }
   app.quit();
+});
+
+ipcMain.on('gate:camera-settings', () => {
+  shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Camera');
 });
 
 ipcMain.on('gate:trace', (_event, line) => {
